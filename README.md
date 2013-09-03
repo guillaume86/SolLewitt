@@ -3,6 +3,9 @@ SolLewitt
 
 A parser for Sol Lewitt style procedural drawing instructions like explained on http://cmuems.com/2013/a/golan/09/02/melanie-nailed-it/
 
+Next step would be to reverse the process and generate instructions from images. Using something like http://rogeralsing.com/2008/12/07/genetic-programming-evolution-of-mona-lisa/
+to turn image into polygons. A very inneficient plain english image encoding algorythm :).
+
 ## Tested Samples:
 
 You can preview the resulting SVG online on http://scriptdraw.com/
