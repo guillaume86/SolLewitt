@@ -48,9 +48,13 @@ namespace SolLewitt.Tests
             var parser = new SolLewittParser();
             var parseTree = parser.Parse(sample);
 
-            var exp = parser.GetReducedExpression(parseTree);
+            var exp = parser.GetExpression(parseTree);
 
             Dump(exp);
+
+            var reducedExp = parser.GetReducedExpression(parseTree);
+
+            //Dump(reducedExp);
         }
 
         [Test, TestCaseSource("Samples")]

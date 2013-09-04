@@ -23,7 +23,7 @@ namespace SolLewitt.Parser
 
         private static CoordinatesPointExpression GetEquidistantPoint(params CoordinatesPointExpression[] points)
         {
-            return points.Aggregate((p1,p2) => p1 + p2) / points.Length;
+            return points.Aggregate((p1,p2) => p1 + p2) / (double)points.Length;
         }
 
         protected override SLExpression VisitLineExtremityPoint(LineExtremityPointExpression lineExtremityPointExpression)
@@ -168,7 +168,6 @@ namespace SolLewitt.Parser
             var squareCorner3 = squareCorner1 + otherSideDirection;
             var squareCorner4 = squareCorner2 + otherSideDirection;
 
-
             return new PolygonFromPointsExpression
             {
                 Points = new[] 
@@ -182,7 +181,7 @@ namespace SolLewitt.Parser
 
             //return new PolygonFromLinesExpression
             //{
-            //    Lines = lines
+            //    Lines = lines//.Take(1)
             //        .Concat(new[]
             //        {
             //            sidePositionAxis,

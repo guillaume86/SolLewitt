@@ -201,7 +201,7 @@ namespace SolLewitt.Parser
 
         private static CoordinatesPointExpression GetCenterOfWallExpression()
         {
-            return new CoordinatesPointExpression { X = 1 / 2, Y = 1 / 2 };
+            return new CoordinatesPointExpression { X = 1 / 2d, Y = 1 / 2d };
         }
 
         private SLExpression GetHalfwayPointExpression(ParseTreeNode parseTreeNode)
