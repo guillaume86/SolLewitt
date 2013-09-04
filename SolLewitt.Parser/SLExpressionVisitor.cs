@@ -29,8 +29,44 @@ namespace SolLewitt.Parser
                 case "LineReferenceExpression": return VisitLineReference((LineReferenceExpression)expression);
                 case "LinesIntersectionPointExpression": return VisitLinesIntersectionPoint((LinesIntersectionPointExpression)expression);
                 case "EquidistantPointExpression": return VisitEquidistantPoint((EquidistantPointExpression)expression);
+                case "SideLengthAndPositionSquareExpression": return VisitSideLengthAndPositionSquare((SideLengthAndPositionSquareExpression)expression);
+                case "DefinedByTwoPointsPointExpression": return VisitDefinedByTwoPointsPoint((DefinedByTwoPointsPointExpression)expression);
                 default: throw new NotImplementedException(expType);
             }
+        }
+
+        protected virtual SLExpression VisitDefinedByTwoPointsPoint(DefinedByTwoPointsPointExpression definedByTwoPointsPointExpression)
+        {
+            var point1 = Visit(definedByTwoPointsPointExpression.Point1);
+            var point2 = Visit(definedByTwoPointsPointExpression.Point2);
+            if (point1 != definedByTwoPointsPointExpression.Point1 || point2 != definedByTwoPointsPointExpression.Point2)
+            {
+                return new DefinedByTwoPointsPointExpression
+                {
+                    Point1 = (PointExpression)point1,
+                    Point2 = (PointExpression)point2
+                };
+            }
+            return definedByTwoPointsPointExpression;
+        }
+
+        protected virtual SLExpression VisitSideLengthAndPositionSquare(SideLengthAndPositionSquareExpression perimeterAndSidePositionSquareExpression)
+        {
+            var lines = perimeterAndSidePositionSquareExpression.Lines.Select(Visit).ToArray();
+            var sidePosition = (TwoPointsLineExpression)Visit(perimeterAndSidePositionSquareExpression.SidePosition);
+
+            if (HasChanged(lines, perimeterAndSidePositionSquareExpression.Lines)
+                || sidePosition != perimeterAndSidePositionSquareExpression.SidePosition)
+            {
+                return new SideLengthAndPositionSquareExpression
+                {
+                    LinesLengthToSideLengthFactor = perimeterAndSidePositionSquareExpression.LinesLengthToSideLengthFactor,
+                    Lines = lines.Cast<LineExpression>().ToArray(),
+                    SideDirection = perimeterAndSidePositionSquareExpression.SideDirection,
+                    SidePosition = sidePosition,
+                };
+            }
+            return perimeterAndSidePositionSquareExpression;
         }
 
         protected virtual SLExpression VisitPolygonFromPoints(PolygonFromPointsExpression polygonFromPointsExpression)

@@ -21,13 +21,9 @@ namespace SolLewitt.Parser
             return GetEquidistantPoint(points);
         }
 
-        private static SLExpression GetEquidistantPoint(params CoordinatesPointExpression[] points)
+        private static CoordinatesPointExpression GetEquidistantPoint(params CoordinatesPointExpression[] points)
         {
-            return new CoordinatesPointExpression
-            {
-                X = points.Sum(p => p.X) / (double)points.Length,
-                Y = points.Sum(p => p.Y) / (double)points.Length,
-            };
+            return points.Aggregate((p1,p2) => p1 + p2) / points.Length;
         }
 
         protected override SLExpression VisitLineExtremityPoint(LineExtremityPointExpression lineExtremityPointExpression)
@@ -118,6 +114,97 @@ namespace SolLewitt.Parser
             {
                 Points = points.ToArray(),
             };
+        }
+
+        protected override SLExpression VisitDefinedByTwoPointsPoint(DefinedByTwoPointsPointExpression definedByTwoPointsPointExpression)
+        {
+            var point1 = (CoordinatesPointExpression)Visit(definedByTwoPointsPointExpression.Point1);
+            var point2 = (CoordinatesPointExpression)Visit(definedByTwoPointsPointExpression.Point2);
+
+            if (point1.X != point2.X || point1.Y != point2.Y)
+            {
+                throw new InvalidOperationException("Points should have the same coordinates.");
+            }
+
+            return point1;
+        }
+
+        protected override SLExpression VisitSideLengthAndPositionSquare(SideLengthAndPositionSquareExpression expression)
+        {
+            var sidePositionAxis = (TwoPointsLineExpression)Visit(expression.SidePosition);
+            var axisLength = GetDistance(
+                (CoordinatesPointExpression)sidePositionAxis.Point1, 
+                (CoordinatesPointExpression)sidePositionAxis.Point2);
+
+            var lines = expression.Lines.Select(Visit).Cast<TwoPointsLineExpression>().ToArray();
+            var totalLinesLength = lines.Select(l => GetDistance((CoordinatesPointExpression)l.Point1, (CoordinatesPointExpression)l.Point2)).Sum();
+            var factor = GetFactor(expression.LinesLengthToSideLengthFactor);
+            var sideLength = factor * totalLinesLength;
+
+            var sideAxisPoint1 = (CoordinatesPointExpression)sidePositionAxis.Point1;
+            var sideAxisPoint2 = (CoordinatesPointExpression)sidePositionAxis.Point2;
+            var sideCenter = GetEquidistantPoint(sideAxisPoint1, sideAxisPoint2);
+
+            var axisPoint1RelativePositionToCenterOfSide = sideAxisPoint1 - sideCenter;
+            var axisPoint2RelativePositionToCenterOfSide = sideAxisPoint2 - sideCenter;
+
+            var squareSideToAxisLengthFactor = sideLength / axisLength;
+
+            var squareCorner1 = axisPoint1RelativePositionToCenterOfSide * squareSideToAxisLengthFactor + sideCenter;
+            var squareCorner2 = axisPoint2RelativePositionToCenterOfSide * squareSideToAxisLengthFactor + sideCenter;
+
+            var otherSideDirection = axisPoint1RelativePositionToCenterOfSide * squareSideToAxisLengthFactor * 2;
+            otherSideDirection = new CoordinatesPointExpression
+            {
+                X = otherSideDirection.Y,
+                Y = -otherSideDirection.X,
+            };
+
+            if (expression.SideDirection == "right" || expression.SideDirection == "bottom")
+            {
+                otherSideDirection = otherSideDirection * -1;
+            }
+
+            var squareCorner3 = squareCorner1 + otherSideDirection;
+            var squareCorner4 = squareCorner2 + otherSideDirection;
+
+
+            return new PolygonFromPointsExpression
+            {
+                Points = new[] 
+                {
+                    squareCorner1,
+                    squareCorner2,
+                    squareCorner4,
+                    squareCorner3,
+                }
+            };
+
+            //return new PolygonFromLinesExpression
+            //{
+            //    Lines = lines
+            //        .Concat(new[]
+            //        {
+            //            sidePositionAxis,
+                    
+            //        }).ToArray(),
+            //};
+        }
+
+        private double GetFactor(string factorStr)
+        {
+            if (factorStr == "tenth")
+            {
+                return 1 / 10d;
+            }
+            throw new NotImplementedException(factorStr);
+        }
+
+        private double GetDistance(CoordinatesPointExpression point1, CoordinatesPointExpression point2)
+        {
+            return Math.Sqrt(
+                Math.Pow(point2.X - point1.X, 2) + 
+                Math.Pow(point2.Y - point1.Y, 2));
         }
     }
 }

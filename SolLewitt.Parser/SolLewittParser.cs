@@ -46,7 +46,7 @@ namespace SolLewitt.Parser
             switch(parseTreeNode.Term.Name)
             {
                 case "Drawing": return GetDrawingExpression(parseTreeNode);
-                case "Polygon": return GetPolygonExpression(parseTreeNode);
+                case "LinesIntersectionPolygon": return GetLinesIntersectionPolygonExpression(parseTreeNode);
                 case "LineDefinition": return GetLineDefinitionExpression(parseTreeNode);
                 case "TwoPointsLine": return GetTwoPointsLineExpression(parseTreeNode);
                 case "HalfwayPoint": return GetHalfwayPointExpression(parseTreeNode);
@@ -57,8 +57,57 @@ namespace SolLewitt.Parser
                 case "ReferencedLine": return GetReferencedLineExpression(parseTreeNode);
                 case "LinesIntersectionPoint": return GetLinesIntersectionPointExpression(parseTreeNode);
                 case "EquidistantPoint": return GetEquidistantPointExpression(parseTreeNode);
+                case "SideLengthAndPositionSquare": return GetSideLengthAndPositionSquareExpression(parseTreeNode);
+                case "DefinedByTwoPointPoint": return GetDefinedByTwoPointPointExpression(parseTreeNode);
+                case "AxisOfAndEquidistantFromTwoPointsLine": return GetAxisOfAndEquidistantFromTwoPointsLineExpression(parseTreeNode);
+                case "PointDefinition": return GetPointDefinitionExpression(parseTreeNode);
                 default: throw new NotImplementedException(parseTreeNode.Term.Name);
             }
+        }
+
+        private SLExpression GetPointDefinitionExpression(ParseTreeNode parseTreeNode)
+        {
+            return (PointExpression)GetExpression(parseTreeNode.ChildNodes[2]);
+        }
+
+        private SLExpression GetAxisOfAndEquidistantFromTwoPointsLineExpression(ParseTreeNode parseTreeNode)
+        {
+            var twoPointsList = parseTreeNode.ChildNodes[4];
+
+            return new TwoPointsLineExpression
+            {
+                Point1 = (PointExpression)GetExpression(twoPointsList.ChildNodes[0]),
+                Point2 = (PointExpression)GetExpression(twoPointsList.ChildNodes[1]),
+            };
+        }
+
+        private SLExpression GetDefinedByTwoPointPointExpression(ParseTreeNode parseTreeNode)
+        {
+            var twoPointsList = parseTreeNode.ChildNodes[1];
+
+            return new DefinedByTwoPointsPointExpression
+            {
+                Point1 = (PointExpression)GetExpression(twoPointsList.ChildNodes[0]),
+                Point2 = (PointExpression)GetExpression(twoPointsList.ChildNodes[1]),
+            };
+        }
+
+        private SLExpression GetSideLengthAndPositionSquareExpression(ParseTreeNode parseTreeNode)
+        {
+            var sideDirectionAndLengthDescription = parseTreeNode.ChildNodes[0];
+            var sidePositionDescription = parseTreeNode.ChildNodes[2];
+            var sidePositionLine = sidePositionDescription.ChildNodes[2];
+
+            var sideDirection = sidePositionDescription.ChildNodes[0].ChildNodes[0];
+            var fraction = sideDirectionAndLengthDescription.ChildNodes[3];
+
+            return new SideLengthAndPositionSquareExpression
+            {
+                SideDirection = sideDirection.Term.Name,
+                LinesLengthToSideLengthFactor = fraction.Term.Name,
+                SidePosition = (TwoPointsLineExpression)GetExpression(sidePositionLine),
+                Lines = GetExpressions(parseTreeNode.ChildNodes[1].ChildNodes).Cast<LineExpression>().ToArray(),
+            };
         }
 
         private SLExpression GetEquidistantPointExpression(ParseTreeNode parseTreeNode)
@@ -88,10 +137,33 @@ namespace SolLewitt.Parser
 
         private SLExpression GetLineExtremityExpression(ParseTreeNode parseTreeNode)
         {
+            var lineNode = parseTreeNode.ChildNodes[1];
+            var extremity = parseTreeNode.ChildNodes[0].Term.Name;
+
+            var isVerb = parseTreeNode.ChildNodes[1].Term.Name == "ExtremityVerb";
+            if (isVerb)
+            {
+                var verb = parseTreeNode.ChildNodes[1].ChildNodes[0].Term.Name;
+                if (verb != "starts" && verb != "ends")
+                {
+                    throw new InvalidOperationException();
+                }
+
+                lineNode = parseTreeNode.ChildNodes[0];
+                extremity = parseTreeNode.ChildNodes[1].ChildNodes[0].Term.Name == "starts"
+                    ? "start"
+                    : "end";
+            }
+
+            if (extremity != "start" && extremity != "end")
+            {
+                throw new InvalidOperationException();
+            }
+
             return new LineExtremityPointExpression
             {
-                Extremity = parseTreeNode.ChildNodes[0].Term.Name,
-                Line = (LineExpression)GetExpression(parseTreeNode.ChildNodes[1]),
+                Extremity = extremity,
+                Line = (LineExpression)GetExpression(lineNode),
             };
         }
 
@@ -159,7 +231,7 @@ namespace SolLewitt.Parser
         }
 
         // PolygonDescription + LineDefinitionList
-        private SLExpression GetPolygonExpression(ParseTreeNode parseTreeNode)
+        private SLExpression GetLinesIntersectionPolygonExpression(ParseTreeNode parseTreeNode)
         {
             return new PolygonFromLinesExpression
             {

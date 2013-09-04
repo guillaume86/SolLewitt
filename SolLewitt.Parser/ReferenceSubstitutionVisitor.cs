@@ -16,6 +16,12 @@ namespace SolLewitt.Parser
             return base.VisitPolygonFromLines(polygonFromLinesExpression);
         }
 
+        protected override SLExpression VisitSideLengthAndPositionSquare(SideLengthAndPositionSquareExpression perimeterAndSidePositionSquareExpression)
+        {
+            this.PolygonLines = perimeterAndSidePositionSquareExpression.Lines;
+            return base.VisitSideLengthAndPositionSquare(perimeterAndSidePositionSquareExpression);
+        }
+
         protected override SLExpression VisitLineReference(LineReferenceExpression lineReferenceExpression)
         {
             var line = PolygonLines.Cast<IdentifiedLineExpression>()

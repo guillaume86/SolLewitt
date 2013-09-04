@@ -27,6 +27,14 @@ namespace SolLewitt.Parser
 
             var doc = new XDocument(
                 new XElement("svg",
+                    new XElement("rect", 
+                        new XAttribute("x", 0),
+                        new XAttribute("y", 0),
+                        new XAttribute("width", 1),
+                        new XAttribute("height", 1),
+                        new XAttribute("fill", "none"),
+                        new XAttribute("stroke", "blue"),
+                        new XAttribute("stroke-width", "0.001")),
                     PolygonsFromPoints.Select(ConvertPolygon).ToArray(),
                     PolygonsFromLines.Select(ConvertPolygon).ToArray(),
                     new XAttribute("viewBox", "0 0 1 1")));

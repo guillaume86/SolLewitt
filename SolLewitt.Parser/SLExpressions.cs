@@ -21,6 +21,14 @@ namespace SolLewitt.Parser
 
     }
 
+    public class SideLengthAndPositionSquareExpression : PolygonExpression
+    {
+        public string LinesLengthToSideLengthFactor { get; set; }
+        public string SideDirection { get; set; }
+        public LineExpression[] Lines { get; set; }
+        public TwoPointsLineExpression SidePosition { get; set; }
+    }
+
     public class PolygonFromPointsExpression : PolygonExpression
     {
         public PointExpression[] Points { get; set; }
@@ -53,6 +61,12 @@ namespace SolLewitt.Parser
         public LineExpression Line2 { get; set; }
     }
 
+    public class DefinedByTwoPointsPointExpression : PointExpression
+    {
+        public PointExpression Point1 { get; set; }
+        public PointExpression Point2 { get; set; }
+    }
+
     public class TwoPointsLineExpression : LineExpression
     {
         public PointExpression Point1 { get; set; }
@@ -75,14 +89,50 @@ namespace SolLewitt.Parser
         public PointExpression[] Points { get; set; }
     }
 
+    public class HalfwayPointExpression : PointExpression
+    {
+        public LineExpression Line;
+    }
+
     public class CoordinatesPointExpression : PointExpression
     {
         public double X { get; set; }
         public double Y { get; set; }
-    }
 
-    public class HalfwayPointExpression : PointExpression
-    {
-        public LineExpression Line;
+        public static CoordinatesPointExpression operator +(CoordinatesPointExpression point1, CoordinatesPointExpression point2)
+        {
+            return new CoordinatesPointExpression
+            {
+                X = point1.X + point2.X,
+                Y = point1.Y + point2.Y,
+            };
+        }
+
+        public static CoordinatesPointExpression operator -(CoordinatesPointExpression point1, CoordinatesPointExpression point2)
+        {
+            return new CoordinatesPointExpression
+            {
+                X = point1.X - point2.X,
+                Y = point1.Y - point2.Y,
+            };
+        }
+
+        public static CoordinatesPointExpression operator *(CoordinatesPointExpression point1, double factor)
+        {
+            return new CoordinatesPointExpression
+            {
+                X = point1.X * factor,
+                Y = point1.Y * factor,
+            };
+        }
+
+        public static CoordinatesPointExpression operator /(CoordinatesPointExpression point1, double factor)
+        {
+            return new CoordinatesPointExpression
+            {
+                X = point1.X / factor,
+                Y = point1.Y / factor,
+            };
+        }
     }
 }

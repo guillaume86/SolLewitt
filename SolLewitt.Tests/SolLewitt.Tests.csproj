@@ -61,6 +61,11 @@
       <Name>SolLewitt.Parser</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SL-232.md" />
+    <None Include="SL-ND.md" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
